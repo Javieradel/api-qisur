@@ -14,9 +14,26 @@ func NewProductController(service *ProductService) *ProductController {
 }
 
 func (pc *ProductController) RegisterRoutes(app *fiber.App) {
-	app.Get("/products", pc.GetProducts)
+	app.Get("/api/v1/products", pc.GetProducts)
 }
 
+// @Summary Get all products
+// @Description Get a paginated list of products with optional filters
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Number of items per page" default(10)
+// @Param name query string false "Filter by product name (partial match)"
+// @Param description query string false "Filter by product description (partial match)"
+// @Param price_from query number false "Filter by minimum price"
+// @Param price_to query number false "Filter by maximum price"
+// @Param stock query int false "Filter by minimum stock"
+// @Success 200 {object} shared.PaginatedResponse{data=[]Product} "OK with paginated products"
+// @Failure 400 {object} shared.Response "Invalid query parameters"
+// @Failure 404 {object} shared.Response "Products not found"
+// @Failure 500 {object} shared.Response "Internal server error"
+// @Router /products [get]
 func (pc *ProductController) GetProducts(c fiber.Ctx) error {
 	var q ProductQueryDTO
 	errQuery := c.Bind().Query(&q)

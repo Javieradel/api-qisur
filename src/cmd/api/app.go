@@ -8,13 +8,14 @@ import (
 	"github.com/Javieradel/api-qisur.git/src/products"
 	swaggo "github.com/gofiber/contrib/v3/swaggo"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 )
 
 // @title           API Example
 // @version         1.0
 // @description     Example API with Fiber and Swagger.
 // @host            localhost:3000
-// @BasePath        /api/
+// @BasePath        /api/v1
 func main() {
 	db.InitDB()
 
@@ -23,6 +24,10 @@ func main() {
 	productService := products.NewProductService(productRepo)
 
 	app := fiber.New()
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+	}))
 
 	app.Get("/api/docs/*", swaggo.HandlerDefault)
 
