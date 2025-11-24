@@ -18,6 +18,10 @@ import (
 func main() {
 	db.InitDB()
 
+	//TODO add a container to DI
+	productRepo := products.NewProductRepository(db.DB)
+	productService := products.NewProductService(productRepo)
+
 	app := fiber.New()
 
 	app.Get("/api/docs/*", swaggo.HandlerDefault)
@@ -26,7 +30,7 @@ func main() {
 		return c.SendString("HELLO")
 	})
 
-	productController := products.NewProductController()
+	productController := products.NewProductController(productService)
 	productController.RegisterRoutes(app)
 
 	log.Fatal(app.Listen(":3000"))
