@@ -1,0 +1,27 @@
+# Binaries for programs
+*.exe
+*.dll
+*.so
+*.dylib
+*.o
+
+# Test binaries
+*_test
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories
+vendor/
+pkg/
+
+# Environment variables
+.env
+.env.*
+.vscode/
+
+# Build directory
+bin/
+.tmp
+# Log files
+*.log

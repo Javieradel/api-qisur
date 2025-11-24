@@ -1,0 +1,16 @@
+root = "."
+tmp_dir = ".tmp"
+
+[build]
+cmd = "go build -o ./tmp/main src/cmd/api"
+bin = "tmp/main"
+delay = 1000
+
+include_ext = ["go"]
+exclude_dir = ["vendor", "tmp"]
+
+log = "air.log"
+
+[log]
+color = true
+

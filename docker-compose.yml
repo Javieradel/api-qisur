@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=qisur-products
+      - POSTGRES_USER=qisur_dev
+      - POSTGRES_PASSWORD=qisur_dev
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  db-data:
