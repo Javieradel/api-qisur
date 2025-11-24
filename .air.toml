@@ -7,7 +7,7 @@ bin = "tmp/main"
 delay = 1000
 
 include_ext = ["go"]
-exclude_dir = ["vendor", "tmp"]
+exclude_dir = ["vendor", "tmp", "docs"]
 
 log = "air.log"
 
