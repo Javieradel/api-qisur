@@ -23,5 +23,7 @@ pkg/
 # Build directory
 bin/
 .tmp
+tmp
 # Log files
 *.log
+docs

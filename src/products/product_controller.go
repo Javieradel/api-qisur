@@ -4,9 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-type ProductController struct {
-	// dependencies can be added here, e.g., a service
-}
+type ProductController struct{}
 
 func NewProductController() *ProductController {
 	return &ProductController{}

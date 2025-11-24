@@ -1,8 +1,8 @@
 root = "."
-tmp_dir = ".tmp"
+tmp_dir = "tmp"
 
 [build]
-cmd = "go build -o ./tmp/main src/cmd/api"
+cmd = "swag init -g ./src/cmd/api/app.go -o ./docs && go build -o ./tmp/main ./src/cmd/api"
 bin = "tmp/main"
 delay = 1000
 
