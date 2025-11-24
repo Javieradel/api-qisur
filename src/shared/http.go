@@ -10,6 +10,14 @@ type Response struct {
 	Error   string      `json:"error,omitempty"`
 }
 
+type PaginatedResponse struct {
+	Response
+	Page  int `json:"page,omitempty"`
+	Limit int `json:"limit,omitempty"`
+	//TotalItems int64 `json:"totalItems,omitempty"`
+	//TotalPages int   `json:"totalPages,omitempty"`
+}
+
 func NewSuccessResponse(c fiber.Ctx, status int, data interface{}) error {
 	return c.Status(status).JSON(Response{
 		Success: true,
@@ -34,5 +42,18 @@ func NewValidationErrorResponse(c fiber.Ctx, errors []ValidationError) error {
 		Success: false,
 		Data:    errors,
 		Error:   "Validation failed",
+	})
+}
+
+func NewPaginatedResponse(c fiber.Ctx, status int, data interface{}, page, limit int) error {
+	return c.Status(status).JSON(PaginatedResponse{
+		Response: Response{
+			Success: true,
+			Data:    data,
+		},
+		Page:  page,
+		Limit: limit,
+		//TotalItems: totalItems,
+		//TotalPages: totalPages,
 	})
 }

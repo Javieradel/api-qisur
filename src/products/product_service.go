@@ -12,7 +12,6 @@ func NewProductService(repo *ProductRepository) *ProductService {
 	return &ProductService{repo: repo}
 }
 
-func (s *ProductService) FindAll() ([]Product, error) {
-	criteria := []shared.Criterion{}
-	return s.repo.FindAll(criteria)
+func (s *ProductService) FindAll(filters []shared.Criterion) ([]Product, error) {
+	return s.repo.FindAll(filters)
 }

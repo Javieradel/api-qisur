@@ -5,14 +5,16 @@ import "gorm.io/gorm"
 type Operator string
 
 const (
-	OpEq   Operator = "="
-	OpGt   Operator = ">"
-	OpLt   Operator = "<"
-	OpGte  Operator = ">="
-	OpLte  Operator = "<="
-	OpIn   Operator = "IN"
-	OpNot  Operator = "NOT"
-	OpLike Operator = "LIKE"
+	OpEq     Operator = "="
+	OpGt     Operator = ">"
+	OpLt     Operator = "<"
+	OpGte    Operator = ">="
+	OpLte    Operator = "<="
+	OpIn     Operator = "IN"
+	OpNot    Operator = "NOT"
+	OpLike   Operator = "LIKE"
+	OpLimit  Operator = "LIMIT"
+	OpOffset Operator = "OFFSET"
 )
 
 type Criterion struct {
@@ -34,6 +36,10 @@ func ApplyCriterion(db *gorm.DB, c Criterion) *gorm.DB {
 		clause = c.Field + " IN ?"
 	case OpNot:
 		clause = "NOT " + c.Field + " = ?"
+	case OpLimit:
+		return db.Limit(c.Value.(int))
+	case OpOffset:
+		return db.Offset(c.Value.(int))
 	}
 
 	if c.Or {

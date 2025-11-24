@@ -18,7 +18,15 @@ func (pc *ProductController) RegisterRoutes(app *fiber.App) {
 }
 
 func (pc *ProductController) GetProducts(c fiber.Ctx) error {
-	products, err := pc.service.FindAll()
+	var q ProductQueryDTO
+	errQuery := c.Bind().Query(&q)
+	if errQuery != nil {
+		return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalids query params")
+	}
+	//TODO check all filters, price field not work
+	filters := q.ToCriterions()
+
+	products, err := pc.service.FindAll(filters)
 	if err != nil {
 		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to fetch products")
 	}
@@ -27,11 +35,17 @@ func (pc *ProductController) GetProducts(c fiber.Ctx) error {
 		return shared.NewErrorResponse(c, fiber.StatusNotFound, "Products not found")
 	}
 
+	if q.Limit > 0 || q.Page > 0 {
+		return shared.NewPaginatedResponse(c, fiber.StatusFound, products, q.Page, q.Limit)
+	}
+
 	return shared.NewSuccessResponse(c, fiber.StatusFound, products)
 }
 
 /*
-GET /api/products - Lista paginada de productos GET /api/products/{id} - Detalle de producto POST /api/products - Crear producto
+~~GET /api/products - Lista paginada de productos
+GET /api/products/{id} - Detalle de producto
+POST /api/products - Crear producto
  Qisur Challenge API REST y Webscoket para gestión de productos.
 PUT /api/products/{id} - Actualizar producto
 DELETE /api/products/{id} - Eliminar producto
