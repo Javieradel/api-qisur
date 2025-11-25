@@ -16,6 +16,7 @@ import (
 // @description     Example API with Fiber and Swagger.
 // @host            localhost:3000
 // @BasePath        /api/v1
+// ? Swagger retrieve 302 code status??
 func main() {
 	db.InitDB()
 
