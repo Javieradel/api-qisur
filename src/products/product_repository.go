@@ -3,6 +3,7 @@ package products
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Javieradel/api-qisur.git/src/categories"
 	"github.com/Javieradel/api-qisur.git/src/shared"
@@ -61,4 +62,17 @@ func (r *ProductRepository) Delete(id uint) error {
 
 func (r *ProductRepository) UpdateCategories(product *Product, categories []categories.Categories) error {
 	return r.DB.Model(&product).Association("Categories").Replace(categories)
+}
+
+func (r *ProductRepository) FindHistoryByProductID(productID uint, start, end *time.Time) ([]ProductHistory, error) {
+	var histories []ProductHistory
+	query := r.DB.Model(&ProductHistory{}).Where("product_id = ?", productID).Preload("Details")
+	if start != nil {
+		query = query.Where("changed_at >= ?", *start)
+	}
+	if end != nil {
+		query = query.Where("changed_at <= ?", *end)
+	}
+	err := query.Order("changed_at DESC").Find(&histories).Error
+	return histories, err
 }

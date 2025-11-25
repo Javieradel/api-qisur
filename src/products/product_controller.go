@@ -28,6 +28,7 @@ func (pc *ProductController) RegisterRoutes(app *fiber.App) {
 	app.Put("/api/v1/products/:id", pc.UpdateProduct)
 	app.Patch("/api/v1/products/:id", pc.PatchProduct)
 	app.Delete("/api/v1/products/:id", pc.DeleteProduct)
+	app.Get("/api/v1/products/:id/history", pc.GetProductHistory)
 }
 
 // @Summary Get all products
@@ -278,4 +279,48 @@ func (pc *ProductController) DeleteProduct(c fiber.Ctx) error {
 	}
 
 	return shared.NewSuccessResponse(c, fiber.StatusOK, "Product deleted successfully")
+}
+
+// @Summary Get product history
+// @Description Get the history of changes for a product
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Param start query string false "Start date for history (YYYY-MM-DD)"
+// @Param end query string false "End date for history (YYYY-MM-DD)"
+// @Success 200 {object} shared.Response{data=[]ProductHistory} "OK with product history"
+// @Failure 400 {object} shared.Response "Invalid product ID or query parameters"
+// @Failure 404 {object} shared.Response "Product not found or no history found"
+// @Failure 500 {object} shared.Response "Internal server error"
+// @Router /products/{id}/history [get]
+func (pc *ProductController) GetProductHistory(c fiber.Ctx) error {
+	idParam := c.Params("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid product ID")
+	}
+
+	var q HistoryQueryDTO
+	if err := c.Bind().Query(&q); err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalids query params")
+	}
+
+	if _, err := pc.service.FindByID(uint(id)); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return shared.NewErrorResponse(c, fiber.StatusNotFound, "Product not found")
+		}
+		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to fetch product")
+	}
+
+	histories, err := pc.service.FindHistoryByProductID(uint(id), q.Start, q.End)
+	if err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to fetch product history")
+	}
+
+	if len(histories) == 0 {
+		return shared.NewSuccessResponse(c, fiber.StatusOK, []ProductHistory{})
+	}
+
+	return shared.NewSuccessResponse(c, fiber.StatusOK, histories)
 }

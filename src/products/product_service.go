@@ -1,6 +1,8 @@
 package products
 
 import (
+	"time"
+
 	"github.com/Javieradel/api-qisur.git/src/categories"
 	"github.com/Javieradel/api-qisur.git/src/shared"
 )
@@ -59,4 +61,8 @@ func (s *ProductService) Delete(id uint) error {
 	}
 	s.eventBus.Publish(ProductDeletedEvent{ProductID: id})
 	return nil
+}
+
+func (s *ProductService) FindHistoryByProductID(productID uint, start, end *time.Time) ([]ProductHistory, error) {
+	return s.repo.FindHistoryByProductID(productID, start, end)
 }

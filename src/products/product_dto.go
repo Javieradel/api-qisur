@@ -1,6 +1,8 @@
 package products
 
 import (
+	"time"
+
 	"github.com/Javieradel/api-qisur.git/src/shared"
 	"github.com/shopspring/decimal"
 )
@@ -47,6 +49,11 @@ type PatchProductDTO struct {
 	Price        *decimal.Decimal `json:"price,omitempty" validate:"omitempty,gt=0"`
 	Stock        *int             `json:"stock,omitempty" validate:"omitempty,gte=0"`
 	CategoriesID *[]uint          `json:"categories_id,omitempty"`
+}
+
+type HistoryQueryDTO struct {
+	Start *time.Time `query:"start" layout:"2006-01-02"`
+	End   *time.Time `query:"end" layout:"2006-01-02"`
 }
 
 // TODO abstract commons criteria & inherit it
