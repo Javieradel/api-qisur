@@ -123,3 +123,14 @@ If you don't want to use `air`, you can run the application with `go run`:
 The API documentation is generated with Swagger and is available at:
 
 [http://localhost:3000/api/docs/index.html](http://localhost:3000/api/docs/index.html)
+
+## Future Enhancements (TODOs)
+
+*   Implement JWT authentication.
+*   Create basic roles (admin, client, etc.).
+*   Protect routes based on roles.
+*   Implement a WebSocket system.
+*   Implement a WebSocket system to emit real-time events for:
+    *   Creation of new products/categories.
+    *   Updates to products/categories.
+    *   Deletion of products/categories.
