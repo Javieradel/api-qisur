@@ -14,10 +14,10 @@ type ProductController struct {
 	validator *shared.XValidator
 }
 
-func NewProductController(service *ProductService) *ProductController {
+func NewProductController(service *ProductService, validator *shared.XValidator) *ProductController {
 	return &ProductController{
 		service:   service,
-		validator: shared.NewValidator(),
+		validator: validator,
 	}
 }
 
@@ -27,6 +27,7 @@ func (pc *ProductController) RegisterRoutes(app *fiber.App) {
 	app.Post("/api/v1/products", pc.CreateProduct)
 	app.Put("/api/v1/products/:id", pc.UpdateProduct)
 	app.Patch("/api/v1/products/:id", pc.PatchProduct)
+	app.Delete("/api/v1/products/:id", pc.DeleteProduct)
 }
 
 // @Summary Get all products
@@ -121,7 +122,7 @@ func (pc *ProductController) CreateProduct(c fiber.Ctx) error {
 	}
 
 	product := dto.ToProduct()
-	if err := pc.service.Create(product); err != nil {
+	if _, err := pc.service.Create(product); err != nil {
 		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to create product")
 	}
 	if len(dto.CategoriesID) > 0 {
@@ -174,7 +175,7 @@ func (pc *ProductController) UpdateProduct(c fiber.Ctx) error {
 	product.Price = dto.Price
 	product.Stock = dto.Stock
 
-	if err := pc.service.Update(product); err != nil {
+	if _, err := pc.service.Update(product); err != nil {
 		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to update product")
 	}
 	if err := pc.service.UpdateCategories(product, dto.CategoriesID); err != nil {
@@ -234,7 +235,7 @@ func (pc *ProductController) PatchProduct(c fiber.Ctx) error {
 		product.Stock = *dto.Stock
 	}
 
-	if err := pc.service.Update(product); err != nil {
+	if _, err := pc.service.Update(product); err != nil {
 		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to update product")
 	}
 
@@ -245,4 +246,36 @@ func (pc *ProductController) PatchProduct(c fiber.Ctx) error {
 	}
 
 	return shared.NewSuccessResponse(c, fiber.StatusOK, product)
+}
+
+// @Summary Delete a product
+// @Description Delete an existing product by its ID
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Success 200 {object} shared.Response "Product deleted successfully"
+// @Failure 400 {object} shared.Response "Invalid product ID"
+// @Failure 404 {object} shared.Response "Product not found"
+// @Failure 500 {object} shared.Response "Internal server error"
+// @Router /products/{id} [delete]
+func (pc *ProductController) DeleteProduct(c fiber.Ctx) error {
+	idParam := c.Params("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid product ID")
+	}
+
+	if _, err := pc.service.FindByID(uint(id)); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return shared.NewErrorResponse(c, fiber.StatusNotFound, "Product not found")
+		}
+		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to fetch product")
+	}
+
+	if err := pc.service.Delete(uint(id)); err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to delete product")
+	}
+
+	return shared.NewSuccessResponse(c, fiber.StatusOK, "Product deleted successfully")
 }

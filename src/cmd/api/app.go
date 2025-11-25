@@ -7,6 +7,7 @@ import (
 	"github.com/Javieradel/api-qisur.git/src/categories"
 	"github.com/Javieradel/api-qisur.git/src/db"
 	"github.com/Javieradel/api-qisur.git/src/products"
+	"github.com/Javieradel/api-qisur.git/src/shared"
 	swaggo "github.com/gofiber/contrib/v3/swaggo"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -20,10 +21,16 @@ import (
 // ? Swagger retrieve 302 code status??
 func main() {
 	db.InitDB()
-	db.DB.AutoMigrate(&products.Product{}, &categories.Categories{}, &products.ProductCategories{})
+	db.DB.AutoMigrate(&products.Product{}, &categories.Categories{}, &products.ProductCategories{}, &products.ProductHistory{}, &products.ProductHistoryDetail{})
+
+	eventBus := shared.NewEventBus()
+	productHistoryListener := products.NewProductHistoryListener(db.DB)
+	eventBus.Subscribe("product.created", productHistoryListener)
+	eventBus.Subscribe("product.updated", productHistoryListener)
+
 	//TODO add a container to DI
 	productRepo := products.NewProductRepository(db.DB)
-	productService := products.NewProductService(productRepo)
+	productService := products.NewProductService(productRepo, eventBus)
 	categoryRepo := categories.NewCategoryRepository(db.DB)
 	categoryService := categories.NewCategoryService(categoryRepo)
 
@@ -39,7 +46,8 @@ func main() {
 		return c.SendString("HELLO")
 	})
 
-	productController := products.NewProductController(productService)
+	validator := shared.NewValidator()
+	productController := products.NewProductController(productService, validator)
 	productController.RegisterRoutes(app)
 	categoryController := categories.NewCategoryController(categoryService)
 	categoryController.RegisterRoutes(app)

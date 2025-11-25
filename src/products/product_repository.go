@@ -48,8 +48,11 @@ func (r *ProductRepository) FindByID(id uint) (*Product, error) {
 	return &product, nil
 }
 
-func (r *ProductRepository) Update(product *Product) error {
-	return r.DB.Save(product).Error
+func (r *ProductRepository) Update(product *Product) (*Product, error) {
+	if err := r.DB.Save(product).Error; err != nil {
+		return nil, err
+	}
+	return product, nil
 }
 
 func (r *ProductRepository) Delete(id uint) error {
