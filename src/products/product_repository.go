@@ -21,6 +21,7 @@ func (r *ProductRepository) Create(product *Product) error {
 	return r.DB.Create(product).Error
 }
 
+// ! Product updated are be inserted on last
 func (r *ProductRepository) FindAll(criteria []shared.Criterion) ([]Product, error) {
 	var products []Product
 	query := r.DB.Model(&Product{}).Preload("Categories")
