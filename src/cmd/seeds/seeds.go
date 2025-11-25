@@ -17,6 +17,7 @@ var seeds []Seed
 
 func registerSeeds() {
 	seeds = append(seeds, ProductsSeed)
+	seeds = append(seeds, CategoriesSeed)
 }
 
 func main() {

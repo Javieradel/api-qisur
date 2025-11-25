@@ -4,6 +4,7 @@ import (
 	"log"
 
 	_ "github.com/Javieradel/api-qisur.git/docs"
+	"github.com/Javieradel/api-qisur.git/src/categories"
 	"github.com/Javieradel/api-qisur.git/src/db"
 	"github.com/Javieradel/api-qisur.git/src/products"
 	swaggo "github.com/gofiber/contrib/v3/swaggo"
@@ -23,6 +24,8 @@ func main() {
 	//TODO add a container to DI
 	productRepo := products.NewProductRepository(db.DB)
 	productService := products.NewProductService(productRepo)
+	categoryRepo := categories.NewCategoryRepository(db.DB)
+	categoryService := categories.NewCategoryService(categoryRepo)
 
 	app := fiber.New()
 
@@ -38,6 +41,8 @@ func main() {
 
 	productController := products.NewProductController(productService)
 	productController.RegisterRoutes(app)
+	categoryController := categories.NewCategoryController(categoryService)
+	categoryController.RegisterRoutes(app)
 
 	log.Fatal(app.Listen(":3000"))
 }
