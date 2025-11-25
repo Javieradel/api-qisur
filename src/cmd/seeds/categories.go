@@ -11,8 +11,6 @@ import (
 var CategoriesSeed = Seed{
 	Name: "categories",
 	Run: func(db *gorm.DB) error {
-		db.AutoMigrate(&categories.Categories{})
-
 		fmt.Println("Seeding 100 categories...")
 
 		for i := 0; i < 100; i++ {

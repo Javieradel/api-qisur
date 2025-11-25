@@ -1,6 +1,7 @@
 package products
 
 import (
+	"github.com/Javieradel/api-qisur.git/src/categories"
 	"github.com/Javieradel/api-qisur.git/src/shared"
 )
 
@@ -28,4 +29,14 @@ func (s *ProductService) Create(product *Product) error {
 func (s *ProductService) Update(product *Product) error {
 	//TODO add bussines validations
 	return s.repo.Update(product)
+}
+
+func (s *ProductService) UpdateCategories(product *Product, categoriesID []uint) error {
+	var cats []categories.Categories
+	if len(categoriesID) > 0 {
+		if err := s.repo.DB.Find(&cats, categoriesID).Error; err != nil {
+			return err
+		}
+	}
+	return s.repo.UpdateCategories(product, cats)
 }

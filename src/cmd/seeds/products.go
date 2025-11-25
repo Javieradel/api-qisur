@@ -13,8 +13,6 @@ import (
 var ProductsSeed = Seed{
 	Name: "products",
 	Run: func(db *gorm.DB) error {
-		db.AutoMigrate(&products.Product{})
-
 		fmt.Println("Seeding 100 products...")
 
 		for i := 0; i < 100; i++ {

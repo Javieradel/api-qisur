@@ -124,7 +124,11 @@ func (pc *ProductController) CreateProduct(c fiber.Ctx) error {
 	if err := pc.service.Create(product); err != nil {
 		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to create product")
 	}
-
+	if len(dto.CategoriesID) > 0 {
+		if err := pc.service.UpdateCategories(product, dto.CategoriesID); err != nil {
+			return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to set categories for product")
+		}
+	}
 	return shared.NewSuccessResponse(c, fiber.StatusCreated, product)
 }
 
@@ -173,7 +177,9 @@ func (pc *ProductController) UpdateProduct(c fiber.Ctx) error {
 	if err := pc.service.Update(product); err != nil {
 		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to update product")
 	}
-
+	if err := pc.service.UpdateCategories(product, dto.CategoriesID); err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to update categories for product")
+	}
 	return shared.NewSuccessResponse(c, fiber.StatusOK, product)
 }
 
@@ -230,6 +236,12 @@ func (pc *ProductController) PatchProduct(c fiber.Ctx) error {
 
 	if err := pc.service.Update(product); err != nil {
 		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to update product")
+	}
+
+	if dto.CategoriesID != nil {
+		if err := pc.service.UpdateCategories(product, *dto.CategoriesID); err != nil {
+			return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to update categories for product")
+		}
 	}
 
 	return shared.NewSuccessResponse(c, fiber.StatusOK, product)

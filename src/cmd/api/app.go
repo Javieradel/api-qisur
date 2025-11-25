@@ -20,7 +20,7 @@ import (
 // ? Swagger retrieve 302 code status??
 func main() {
 	db.InitDB()
-
+	db.DB.AutoMigrate(&products.Product{}, &categories.Categories{}, &products.ProductCategories{})
 	//TODO add a container to DI
 	productRepo := products.NewProductRepository(db.DB)
 	productService := products.NewProductService(productRepo)

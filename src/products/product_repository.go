@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Javieradel/api-qisur.git/src/categories"
 	"github.com/Javieradel/api-qisur.git/src/shared"
 	"gorm.io/gorm"
 )
@@ -22,7 +23,7 @@ func (r *ProductRepository) Create(product *Product) error {
 
 func (r *ProductRepository) FindAll(criteria []shared.Criterion) ([]Product, error) {
 	var products []Product
-	query := r.DB.Model(&Product{}) // Partimos de la query base
+	query := r.DB.Model(&Product{}).Preload("Categories")
 
 	if len(criteria) > 0 {
 		query = shared.ApplyCriteria(query, criteria)
@@ -40,7 +41,7 @@ func (r *ProductRepository) FindAll(criteria []shared.Criterion) ([]Product, err
 
 func (r *ProductRepository) FindByID(id uint) (*Product, error) {
 	var product Product
-	if err := r.DB.First(&product, id).Error; err != nil {
+	if err := r.DB.Preload("Categories").First(&product, id).Error; err != nil {
 		return nil, err
 	}
 	return &product, nil
@@ -52,4 +53,8 @@ func (r *ProductRepository) Update(product *Product) error {
 
 func (r *ProductRepository) Delete(id uint) error {
 	return r.DB.Delete(&Product{}, id).Error
+}
+
+func (r *ProductRepository) UpdateCategories(product *Product, categories []categories.Categories) error {
+	return r.DB.Model(&product).Association("Categories").Replace(categories)
 }

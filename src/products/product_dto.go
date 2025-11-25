@@ -6,20 +6,22 @@ import (
 )
 
 type ProductQueryDTO struct {
-	Page        int              `query:"page" validate:"gte=0"`
-	Limit       int              `query:"limit" validate:"gte=0,lte=100"`
-	Name        string           `query:"name"`
-	Description string           `query:"description"`
-	PriceFrom   *decimal.Decimal `query:"price_from"`
-	PriceTo     *decimal.Decimal `query:"price_to"`
-	Stock       int              `query:"stock"`
+	Page         int              `query:"page" validate:"gte=0"`
+	Limit        int              `query:"limit" validate:"gte=0,lte=100"`
+	Name         string           `query:"name"`
+	Description  string           `query:"description"`
+	PriceFrom    *decimal.Decimal `query:"price_from"`
+	PriceTo      *decimal.Decimal `query:"price_to"`
+	Stock        int              `query:"stock"`
+	CategoriesID []uint           `query:"categories_id"`
 }
 
 type CreateProductDTO struct {
-	Name        string          `json:"name" validate:"required"`
-	Description string          `json:"description"`
-	Price       decimal.Decimal `json:"price" validate:"gt=0"`
-	Stock       int             `json:"stock" validate:"gte=0"`
+	Name         string          `json:"name" validate:"required"`
+	Description  string          `json:"description"`
+	Price        decimal.Decimal `json:"price" validate:"gt=0"`
+	Stock        int             `json:"stock" validate:"gte=0"`
+	CategoriesID []uint          `json:"categories_id"`
 }
 
 func (dto *CreateProductDTO) ToProduct() *Product {
@@ -32,17 +34,19 @@ func (dto *CreateProductDTO) ToProduct() *Product {
 }
 
 type UpdateProductDTO struct {
-	Name        string          `json:"name" validate:"required"`
-	Description string          `json:"description"`
-	Price       decimal.Decimal `json:"price" validate:"gt=0"`
-	Stock       int             `json:"stock" validate:"gte=0"`
+	Name         string          `json:"name" validate:"required"`
+	Description  string          `json:"description"`
+	Price        decimal.Decimal `json:"price" validate:"gt=0"`
+	Stock        int             `json:"stock" validate:"gte=0"`
+	CategoriesID []uint          `json:"categories_id"`
 }
 
 type PatchProductDTO struct {
-	Name        *string          `json:"name,omitempty"`
-	Description *string          `json:"description,omitempty"`
-	Price       *decimal.Decimal `json:"price,omitempty" validate:"omitempty,gt=0"`
-	Stock       *int             `json:"stock,omitempty" validate:"omitempty,gte=0"`
+	Name         *string          `json:"name,omitempty"`
+	Description  *string          `json:"description,omitempty"`
+	Price        *decimal.Decimal `json:"price,omitempty" validate:"omitempty,gt=0"`
+	Stock        *int             `json:"stock,omitempty" validate:"omitempty,gte=0"`
+	CategoriesID *[]uint          `json:"categories_id,omitempty"`
 }
 
 // TODO abstract commons criteria & inherit it
