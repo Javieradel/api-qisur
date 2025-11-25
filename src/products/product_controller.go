@@ -25,6 +25,8 @@ func (pc *ProductController) RegisterRoutes(app *fiber.App) {
 	app.Get("/api/v1/products", pc.GetProducts)
 	app.Get("/api/v1/products/:id", pc.GetProductByID)
 	app.Post("/api/v1/products", pc.CreateProduct)
+	app.Put("/api/v1/products/:id", pc.UpdateProduct)
+	app.Patch("/api/v1/products/:id", pc.PatchProduct)
 }
 
 // @Summary Get all products
@@ -124,4 +126,111 @@ func (pc *ProductController) CreateProduct(c fiber.Ctx) error {
 	}
 
 	return shared.NewSuccessResponse(c, fiber.StatusCreated, product)
+}
+
+// @Summary Update a product
+// @Description Update an existing product with the given data
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Param product body UpdateProductDTO true "Product data"
+// @Success 200 {object} shared.Response{data=Product} "Product updated successfully"
+// @Failure 400 {object} shared.Response "Invalid request body or product ID"
+// @Failure 404 {object} shared.Response "Product not found"
+// @Failure 422 {object} shared.Response "Validation failed"
+// @Failure 500 {object} shared.Response "Internal server error"
+// @Router /products/{id} [put]
+func (pc *ProductController) UpdateProduct(c fiber.Ctx) error {
+	idParam := c.Params("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid product ID")
+	}
+
+	var dto UpdateProductDTO
+	if err := c.Bind().Body(&dto); err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid request body")
+	}
+
+	if errs := pc.validator.Validate(dto); len(errs) > 0 {
+		return shared.NewValidationErrorResponse(c, errs)
+	}
+
+	product, err := pc.service.FindByID(uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return shared.NewErrorResponse(c, fiber.StatusNotFound, "Product not found")
+		}
+		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to fetch product")
+	}
+
+	product.Name = dto.Name
+	product.Description = dto.Description
+	product.Price = dto.Price
+	product.Stock = dto.Stock
+
+	if err := pc.service.Update(product); err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to update product")
+	}
+
+	return shared.NewSuccessResponse(c, fiber.StatusOK, product)
+}
+
+// PatchProduct godoc
+// @Summary Partially update a product
+// @Description Partially update an existing product with the given data
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Param product body PatchProductDTO true "Product data"
+// @Success 200 {object} shared.Response{data=Product} "Product updated successfully"
+// @Failure 400 {object} shared.Response "Invalid request body or product ID"
+// @Failure 404 {object} shared.Response "Product not found"
+// @Failure 422 {object} shared.Response "Validation failed"
+// @Failure 500 {object} shared.Response "Internal server error"
+// @Router /products/{id} [patch]
+func (pc *ProductController) PatchProduct(c fiber.Ctx) error {
+	idParam := c.Params("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid product ID")
+	}
+
+	var dto PatchProductDTO
+	if err := c.Bind().Body(&dto); err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid request body")
+	}
+
+	if errs := pc.validator.Validate(dto); len(errs) > 0 {
+		return shared.NewValidationErrorResponse(c, errs)
+	}
+
+	product, err := pc.service.FindByID(uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return shared.NewErrorResponse(c, fiber.StatusNotFound, "Product not found")
+		}
+		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to fetch product")
+	}
+
+	if dto.Name != nil {
+		product.Name = *dto.Name
+	}
+	if dto.Description != nil {
+		product.Description = *dto.Description
+	}
+	if dto.Price != nil {
+		product.Price = *dto.Price
+	}
+	if dto.Stock != nil {
+		product.Stock = *dto.Stock
+	}
+
+	if err := pc.service.Update(product); err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to update product")
+	}
+
+	return shared.NewSuccessResponse(c, fiber.StatusOK, product)
 }

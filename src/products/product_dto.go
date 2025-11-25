@@ -31,6 +31,20 @@ func (dto *CreateProductDTO) ToProduct() *Product {
 	}
 }
 
+type UpdateProductDTO struct {
+	Name        string          `json:"name" validate:"required"`
+	Description string          `json:"description"`
+	Price       decimal.Decimal `json:"price" validate:"gt=0"`
+	Stock       int             `json:"stock" validate:"gte=0"`
+}
+
+type PatchProductDTO struct {
+	Name        *string          `json:"name,omitempty"`
+	Description *string          `json:"description,omitempty"`
+	Price       *decimal.Decimal `json:"price,omitempty" validate:"omitempty,gt=0"`
+	Stock       *int             `json:"stock,omitempty" validate:"omitempty,gte=0"`
+}
+
 // TODO abstract commons criteria & inherit it
 func (dto *ProductQueryDTO) ToCriterions() []shared.Criterion {
 	criterions := make([]shared.Criterion, 0)

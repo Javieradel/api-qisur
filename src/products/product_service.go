@@ -24,3 +24,8 @@ func (s *ProductService) Create(product *Product) error {
 	//TODO add bussines validations
 	return s.repo.Create(product)
 }
+
+func (s *ProductService) Update(product *Product) error {
+	//TODO add bussines validations
+	return s.repo.Update(product)
+}
