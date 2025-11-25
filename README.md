@@ -2,6 +2,8 @@
 
 This is a sample API built with Go and Fiber that manages products and categories. It uses a PostgreSQL database and provides a Swagger interface for API documentation.
 
+*Note: The TODOs at the end of this document will be added during the 5th week of November.*
+
 ## Features
 
 -   CRUD operations for products and categories.
