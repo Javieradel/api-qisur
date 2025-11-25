@@ -32,12 +32,13 @@ func NewErrorResponse(c fiber.Ctx, status int, message string) error {
 	})
 }
 
-type ValidationError struct {
+type ErrorResponse struct {
 	Field   string `json:"field"`
+	Tag     string `json:"tag"`
 	Message string `json:"message"`
 }
 
-func NewValidationErrorResponse(c fiber.Ctx, errors []ValidationError) error {
+func NewValidationErrorResponse(c fiber.Ctx, errors []ErrorResponse) error {
 	return c.Status(fiber.StatusUnprocessableEntity).JSON(Response{
 		Success: false,
 		Data:    errors,

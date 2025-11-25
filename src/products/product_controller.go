@@ -1,20 +1,30 @@
 package products
 
 import (
+	"errors"
+	"strconv"
+
 	"github.com/Javieradel/api-qisur.git/src/shared"
 	"github.com/gofiber/fiber/v3"
+	"gorm.io/gorm"
 )
 
 type ProductController struct {
-	service *ProductService
+	service   *ProductService
+	validator *shared.XValidator
 }
 
 func NewProductController(service *ProductService) *ProductController {
-	return &ProductController{service: service}
+	return &ProductController{
+		service:   service,
+		validator: shared.NewValidator(),
+	}
 }
 
 func (pc *ProductController) RegisterRoutes(app *fiber.App) {
 	app.Get("/api/v1/products", pc.GetProducts)
+	app.Get("/api/v1/products/:id", pc.GetProductByID)
+	app.Post("/api/v1/products", pc.CreateProduct)
 }
 
 // @Summary Get all products
@@ -36,13 +46,11 @@ func (pc *ProductController) RegisterRoutes(app *fiber.App) {
 // @Router /products [get]
 func (pc *ProductController) GetProducts(c fiber.Ctx) error {
 	var q ProductQueryDTO
-	errQuery := c.Bind().Query(&q)
-	if errQuery != nil {
+	if err := c.Bind().Query(&q); err != nil {
 		return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalids query params")
 	}
-	//TODO check all filters, price field not work
-	filters := q.ToCriterions()
 
+	filters := q.ToCriterions()
 	products, err := pc.service.FindAll(filters)
 	if err != nil {
 		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to fetch products")
@@ -59,16 +67,61 @@ func (pc *ProductController) GetProducts(c fiber.Ctx) error {
 	return shared.NewSuccessResponse(c, fiber.StatusFound, products)
 }
 
-/*
-~~GET /api/products - Lista paginada de productos
-GET /api/products/{id} - Detalle de producto
-POST /api/products - Crear producto
- Qisur Challenge API REST y Webscoket para gestión de productos.
-PUT /api/products/{id} - Actualizar producto
-DELETE /api/products/{id} - Eliminar producto
-GET /api/products/{id}/history?start={date}&end={date} – Historial del producto GET /api/categories - Lista de categorías
-POST /api/categories - Crear categoría
-PUT /api/categories/{id} - Actualizar categoría
-DELETE /api/categories/{id} - Eliminar categoría GET/api/search?{product/category}&[params] – Buscar productos o categorías
+// @Summary Get product by ID
+// @Description Get a single product by its ID
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Success 200 {object} shared.Response{data=Product} "OK with product data"
+// @Failure 400 {object} shared.Response "Invalid product ID"
+// @Failure 404 {object} shared.Response "Product not found"
+// @Failure 500 {object} shared.Response "Internal server error"
+// @Router /products/{id} [get]
+func (pc *ProductController) GetProductByID(c fiber.Ctx) error {
+	idParam := c.Params("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid product ID")
+	}
 
-*/
+	product, err := pc.service.FindByID(uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return shared.NewErrorResponse(c, fiber.StatusNotFound, "Product not found")
+		}
+		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to fetch product")
+	}
+
+	return shared.NewSuccessResponse(c, fiber.StatusOK, product)
+}
+
+// CreateProduct godoc
+// @Summary Create a new product
+// @Description Create a new product with the given data
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param product body CreateProductDTO true "Product data"
+// @Success 201 {object} shared.Response{data=Product} "Product created successfully"
+// @Failure 400 {object} shared.Response "Invalid request body"
+// @Failure 422 {object} shared.Response "Validation failed"
+// @Failure 500 {object} shared.Response "Internal server error"
+// @Router /products [post]
+func (pc *ProductController) CreateProduct(c fiber.Ctx) error {
+	var dto CreateProductDTO
+	if err := c.Bind().Body(&dto); err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid request body")
+	}
+
+	if errs := pc.validator.Validate(dto); len(errs) > 0 {
+		return shared.NewValidationErrorResponse(c, errs)
+	}
+
+	product := dto.ToProduct()
+	if err := pc.service.Create(product); err != nil {
+		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to create product")
+	}
+
+	return shared.NewSuccessResponse(c, fiber.StatusCreated, product)
+}

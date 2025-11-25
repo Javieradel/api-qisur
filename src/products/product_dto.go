@@ -15,6 +15,22 @@ type ProductQueryDTO struct {
 	Stock       int              `query:"stock"`
 }
 
+type CreateProductDTO struct {
+	Name        string          `json:"name" validate:"required"`
+	Description string          `json:"description"`
+	Price       decimal.Decimal `json:"price" validate:"gt=0"`
+	Stock       int             `json:"stock" validate:"gte=0"`
+}
+
+func (dto *CreateProductDTO) ToProduct() *Product {
+	return &Product{
+		Name:        dto.Name,
+		Description: dto.Description,
+		Price:       dto.Price,
+		Stock:       dto.Stock,
+	}
+}
+
 // TODO abstract commons criteria & inherit it
 func (dto *ProductQueryDTO) ToCriterions() []shared.Criterion {
 	criterions := make([]shared.Criterion, 0)
