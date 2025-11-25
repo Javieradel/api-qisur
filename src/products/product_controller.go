@@ -3,6 +3,7 @@ package products
 import (
 	"errors"
 	"strconv"
+	"time"
 
 	"github.com/Javieradel/api-qisur.git/src/shared"
 	"github.com/gofiber/fiber/v3"
@@ -301,9 +302,25 @@ func (pc *ProductController) GetProductHistory(c fiber.Ctx) error {
 		return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid product ID")
 	}
 
-	var q HistoryQueryDTO
-	if err := c.Bind().Query(&q); err != nil {
-		return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalids query params")
+	startStr := c.Query("start")
+	endStr := c.Query("end")
+	layout := "2006-01-02"
+	var start, end *time.Time
+
+	if startStr != "" {
+		parsedTime, err := time.Parse(layout, startStr)
+		if err != nil {
+			return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid start date format, use YYYY-MM-DD")
+		}
+		start = &parsedTime
+	}
+
+	if endStr != "" {
+		parsedTime, err := time.Parse(layout, endStr)
+		if err != nil {
+			return shared.NewErrorResponse(c, fiber.StatusBadRequest, "Invalid end date format, use YYYY-MM-DD")
+		}
+		end = &parsedTime
 	}
 
 	if _, err := pc.service.FindByID(uint(id)); err != nil {
@@ -313,7 +330,7 @@ func (pc *ProductController) GetProductHistory(c fiber.Ctx) error {
 		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to fetch product")
 	}
 
-	histories, err := pc.service.FindHistoryByProductID(uint(id), q.Start, q.End)
+	histories, err := pc.service.FindHistoryByProductID(uint(id), start, end)
 	if err != nil {
 		return shared.NewErrorResponse(c, fiber.StatusInternalServerError, "Failed to fetch product history")
 	}
